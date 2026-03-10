@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rittenregistratie - Baalderborg Groep</title>
+</head>
+<body>
+  <header>
+    <h1>Rittenregistratie</h1>
+    <nav>
+      <button class="nav-btn active" data-view="trip">Nieuwe rit</button>
+      <button class="nav-btn" data-view="list">Overzicht</button>
+      <button class="nav-btn" data-view="routes">Routes</button>
+      <button class="nav-btn" data-view="settings">Instellingen</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- NIEUWE RIT -->
+    <section id="view-trip" class="view active">
+      <div class="card">
+        <h2>Nieuwe rit registreren</h2>
+        <div class="form-row">
+          <label for="trip-date">Datum</label>
+          <input type="date" id="trip-date">
+        </div>
+        <div id="stops-container">
+          <!-- Stops worden hier dynamisch toegevoegd -->
+        </div>
+        <button id="add-stop-btn" class="btn-secondary">+ Stop toevoegen</button>
+        <div id="trip-summary" class="trip-summary hidden">
+          <div class="summary-row">
+            <span>Totaal</span>
+            <strong id="trip-total-km">0 km</strong>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button id="save-trip-btn" class="btn-primary">Rit opslaan</button>
+          <button id="save-route-btn" class="btn-ghost">Route opslaan</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- OVERZICHT -->
+    <section id="view-list" class="view">
+      <div class="card">
+        <div class="month-nav">
+          <button id="prev-month" class="btn-icon">&larr;</button>
+          <h2 id="month-title">Maart 2026</h2>
+          <button id="next-month" class="btn-icon">&rarr;</button>
+        </div>
+        <div id="month-summary" class="month-summary-box"></div>
+        <div id="trips-list"></div>
+        <button id="export-btn" class="btn-primary">Exporteer naar Excel</button>
+      </div>
+    </section>
+
+    <!-- OPGESLAGEN ROUTES -->
+    <section id="view-routes" class="view">
+      <div class="card">
+        <h2>Opgeslagen routes</h2>
+        <div id="saved-routes-list"></div>
+        <p id="no-routes-msg" class="muted">Nog geen routes opgeslagen. Sla een route op bij het invoeren van een rit.</p>
+      </div>
+    </section>
+
+    <!-- INSTELLINGEN -->
+    <section id="view-settings" class="view">
+      <div class="card">
+        <h2>Instellingen</h2>
+        <div class="form-row">
+          <label for="home-location">Thuislocatie (standaard vertrekpunt)</label>
+          <div id="home-location-picker"></div>
+        </div>
+        <div class="form-row">
+          <label>
+            <input type="checkbox" id="auto-add-home" checked>
+            Automatisch thuislocatie als eerste en laatste stop
+          </label>
+        </div>
+        <h3>OpenRouteService API</h3>
+        <p class="muted">Nodig voor het berekenen van afstanden naar nieuwe locaties.</p>
+        <div class="form-row">
+          <label for="ors-api-key">API Key</label>
+          <input type="text" id="ors-api-key" placeholder="Plak hier je ORS API-key">
+        </div>
+        <button id="save-settings-btn" class="btn-primary">Instellingen opslaan</button>
+
+        <h3>Locatie toevoegen</h3>
+        <div class="form-row">
+          <label for="new-loc-name">Naam</label>
+          <input type="text" id="new-loc-name" placeholder="Naam van de locatie">
+        </div>
+        <div class="form-row">
+          <label for="new-loc-address">Adres</label>
+          <input type="text" id="new-loc-address" placeholder="Straat + nummer, postcode, plaats">
+        </div>
+        <div class="form-row">
+          <label for="new-loc-org">Organisatie</label>
+          <select id="new-loc-org">
+            <option value="baalderborg">Baalderborg</option>
+            <option value="frion">Frion</option>
+            <option value="overig">Overig</option>
+          </select>
+        </div>
+        <button id="add-location-btn" class="btn-secondary">Locatie toevoegen</button>
+        <div id="add-location-status"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal voor route opslaan -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 id="modal-title">Route opslaan</h3>
+      <div class="form-row">
+        <label for="route-name">Naam</label>
+        <input type="text" id="route-name" placeholder="bijv. Maandag standaard">
+      </div>
+      <div class="form-actions">
+        <button id="modal-save" class="btn-primary">Opslaan</button>
+        <button id="modal-cancel" class="btn-ghost">Annuleren</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Afstandsmatrix - Rittenregistratie</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+
+    header {
+      background: linear-gradient(135deg, #1a6b3c 0%, #145530 100%);
+      color: white; padding: 16px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    header h1 { font-size: 1.2rem; }
+    header a { color: white; text-decoration: none; opacity: 0.8; font-size: 0.9rem; }
+    header a:hover { opacity: 1; }
+
+    .controls {
+      padding: 16px 24px; background: white; border-bottom: 1px solid #ddd;
+      display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    }
+    .controls label { font-weight: 600; font-size: 0.85rem; }
+    .controls input, .controls select {
+      padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem;
+    }
+    .controls input[type="text"] { width: 200px; }
+    .stats { padding: 12px 24px; background: #e8f5e9; font-size: 0.85rem; display: flex; gap: 24px; flex-wrap: wrap; }
+    .stats span { font-weight: 600; }
+
+    .table-wrapper {
+      overflow: auto; padding: 12px; max-height: calc(100vh - 200px);
+    }
+    table {
+      border-collapse: collapse; font-size: 0.7rem; white-space: nowrap;
+    }
+    th, td {
+      border: 1px solid #ccc; padding: 3px 5px; text-align: center; min-width: 32px;
+    }
+    th {
+      background: #1a6b3c; color: white; position: sticky; top: 0; z-index: 2;
+      font-weight: 600; font-size: 0.65rem;
+    }
+    th.row-header {
+      background: #1a6b3c; color: white; position: sticky; left: 0; z-index: 3;
+      text-align: left; min-width: 120px; font-size: 0.7rem;
+    }
+    th.corner {
+      position: sticky; top: 0; left: 0; z-index: 4; background: #145530;
+    }
+    td.self { background: #e0e0e0; color: #999; }
+    td.zero { background: #fff3e0; color: #e65100; font-weight: 600; }
+    td.missing { background: #ffebee; color: #c62828; }
+    td.has-value { background: white; }
+    td.highlight { background: #e3f2fd !important; }
+
+    .legend {
+      padding: 8px 24px; display: flex; gap: 16px; font-size: 0.8rem; flex-wrap: wrap;
+    }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-color {
+      width: 16px; height: 16px; border: 1px solid #ccc; border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Afstandsmatrix</h1>
+    <a href="/">← Terug naar app</a>
+  </header>
+
+  <div class="controls">
+    <div>
+      <label for="search">Zoek locatie:</label>
+      <input type="text" id="search" placeholder="Type om te filteren...">
+    </div>
+    <div>
+      <label for="filter">Toon:</label>
+      <select id="filter">
+        <option value="all">Alle locaties</option>
+        <option value="hardenberg">Hardenberg cluster</option>
+        <option value="ommen">Ommen cluster</option>
+        <option value="zwolle">Zwolle cluster</option>
+        <option value="frion">Frion locaties</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-color" style="background:white"></div> Afstand bekend</div>
+    <div class="legend-item"><div class="legend-color" style="background:#fff3e0"></div> 0 km (zelfde adres)</div>
+    <div class="legend-item"><div class="legend-color" style="background:#ffebee"></div> Ontbrekend</div>
+    <div class="legend-item"><div class="legend-color" style="background:#e0e0e0"></div> Zelfde locatie</div>
+  </div>
+
+  <div class="table-wrapper" id="table-wrapper"></div>
+
+  <script type="module">
+    import { getDistance, getAllLocationNames } from '/src/data/matrix.js'
+
+    const allNames = getAllLocationNames()
+
+    // Cluster definitions for filtering
+    const clusters = {
+      hardenberg: ['Keet','Hoogenweg','Vlasakkerkamp','Spindel','Oldenburg','Niehof','Holte',
+        'Baaldergroen','Pijlkruid','Roots','Koppeling','Grasklokje 80','Grasklokje 45',
+        'Blanckvoortallee','Gilde','Wanne','Hof van Pepijn','Ziekenhuis Hardenberg','Lutten'],
+      ommen: ['Vlinder','De Elzenhoek','Hazelaar','Linde','Esrand','Alteveer','Hei en Dennen',
+        'Mulert','Gerard Doustraat','Dante'],
+      zwolle: ['Erasmuslaan','Isala','Ijsselbolder','Frankhuizerallee','Govert Flinckstraat',
+        'Werkeren','Prunuspark','Bachlaan','Beulakerwiede','Nicolaihof','Schumannlaan',
+        'Ternatestraat','Staatsmanlaan','Wismarstraat','De Stadshoeve','De Schellerhoeve','Oldpark'],
+      frion: ['Prunuspark','Bachlaan','Beulakerwiede','Nicolaihof','Schumannlaan','Ternatestraat',
+        'Staatsmanlaan','Wismarstraat','De Stadshoeve','De Schellerhoeve','Oldpark',
+        'Anjelierstraat','Onnastraat','Van Goghstraat',"'t Goor",'Dagcentrum De Slinger','Frans Halsstraat'],
+    }
+
+    function getFilteredNames() {
+      const filter = document.getElementById('filter').value
+      const search = document.getElementById('search').value.toLowerCase()
+
+      let names = allNames
+      if (filter !== 'all' && clusters[filter]) {
+        names = names.filter(n => clusters[filter].includes(n))
+      }
+      if (search) {
+        names = names.filter(n => n.toLowerCase().includes(search))
+      }
+      return names
+    }
+
+    function renderTable() {
+      const names = getFilteredNames()
+      const wrapper = document.getElementById('table-wrapper')
+
+      if (names.length === 0) {
+        wrapper.innerHTML = '<p style="padding:24px;color:#666;">Geen locaties gevonden.</p>'
+        return
+      }
+
+      // Stats
+      let known = 0, missing = 0, zeros = 0
+      for (let i = 0; i < names.length; i++) {
+        for (let j = 0; j < names.length; j++) {
+          if (i === j) continue
+          const d = getDistance(names[i], names[j])
+          if (d === null || d === undefined) missing++
+          else if (d === 0) zeros++
+          else known++
+        }
+      }
+      const total = names.length * (names.length - 1)
+      document.getElementById('stats').innerHTML = `
+        <div><span>${names.length}</span> locaties</div>
+        <div><span>${known}</span> afstanden bekend</div>
+        <div><span>${zeros}</span> paren 0 km</div>
+        <div><span>${missing}</span> ontbrekend</div>
+        <div><span>${total > 0 ? (((known + zeros) / total) * 100).toFixed(1) : 0}%</span> volledig</div>
+      `
+
+      // Build table
+      let html = '<table><thead><tr><th class="corner">Van \\ Naar</th>'
+      for (const name of names) {
+        // Abbreviate long names for column headers
+        const short = name.length > 10 ? name.substring(0, 9) + '…' : name
+        html += `<th title="${name}">${short}</th>`
+      }
+      html += '</tr></thead><tbody>'
+
+      for (let i = 0; i < names.length; i++) {
+        html += `<tr><th class="row-header">${names[i]}</th>`
+        for (let j = 0; j < names.length; j++) {
+          if (i === j) {
+            html += '<td class="self">-</td>'
+          } else {
+            const d = getDistance(names[i], names[j])
+            if (d === null || d === undefined) {
+              html += '<td class="missing" title="' + names[i] + ' → ' + names[j] + ': onbekend">?</td>'
+            } else if (d === 0) {
+              html += '<td class="zero" title="' + names[i] + ' → ' + names[j] + ': 0 km">0</td>'
+            } else {
+              html += '<td class="has-value" title="' + names[i] + ' → ' + names[j] + ': ' + d + ' km">' + d + '</td>'
+            }
+          }
+        }
+        html += '</tr>'
+      }
+      html += '</tbody></table>'
+      wrapper.innerHTML = html
+
+      // Hover highlight
+      const rows = wrapper.querySelectorAll('tbody tr')
+      rows.forEach(row => {
+        row.addEventListener('mouseenter', () => {
+          row.querySelectorAll('td').forEach(td => td.classList.add('highlight'))
+        })
+        row.addEventListener('mouseleave', () => {
+          row.querySelectorAll('td').forEach(td => td.classList.remove('highlight'))
+        })
+      })
+    }
+
+    document.getElementById('search').addEventListener('input', renderTable)
+    document.getElementById('filter').addEventListener('change', renderTable)
+    renderTable()
+  </script>
+</body>
+</html>
