@@ -1,6 +1,6 @@
 import './style.css'
 import { LOCATIONS, findLocationByName } from './data/locations.js'
-import { lookupDistance, calculateTripDistances, saveCustomDistance, geocodeAddress, calculateRouteDistance, autoCalculateDistance } from './utils/distance.js'
+import { lookupDistance, calculateTripDistances, autoCalculateDistance } from './utils/distance.js'
 import { getTrips, addTrip, deleteTrip, getSavedRoutes, saveSavedRoutes, getSettings, saveSettings, getCustomLocations, saveCustomLocations } from './utils/storage.js'
 import { formatDate, formatDateShort, formatMonthYear, todayISO } from './utils/formatters.js'
 
@@ -517,18 +517,12 @@ function loadSettings() {
     container.appendChild(dropdown)
   })
 
-  // ORS API key
-  document.getElementById('ors-api-key').value = localStorage.getItem('rr_ors_api_key') || ''
 }
 
 document.getElementById('save-settings-btn').addEventListener('click', () => {
   const homeLocation = document.getElementById('home-loc-input')?.value || 'Keet'
   const autoAddHome = document.getElementById('auto-add-home').checked
   saveSettings({ homeLocation, autoAddHome })
-
-  const apiKey = document.getElementById('ors-api-key').value.trim()
-  if (apiKey) localStorage.setItem('rr_ors_api_key', apiKey)
-  else localStorage.removeItem('rr_ors_api_key')
 
   const btn = document.getElementById('save-settings-btn')
   btn.textContent = 'Opgeslagen!'
@@ -555,20 +549,7 @@ document.getElementById('add-location-btn').addEventListener('click', async () =
   const custom = getCustomLocations()
   const newLoc = { id: `custom_${Date.now()}`, name, address, city: '', org }
 
-  // Try to geocode and calculate distances
-  const apiKey = localStorage.getItem('rr_ors_api_key')
-  if (apiKey) {
-    statusEl.innerHTML = '<p class="muted">Adres opzoeken en afstanden berekenen...</p>'
-    try {
-      const coords = await geocodeAddress(address)
-      newLoc.coords = coords
-      statusEl.innerHTML = '<p class="muted">Adres gevonden! Afstanden worden later berekend bij gebruik.</p>'
-    } catch (err) {
-      statusEl.innerHTML = `<p style="color:var(--danger)">Kon adres niet vinden: ${err.message}. Locatie wordt toch toegevoegd, maar afstanden moeten handmatig worden ingevuld.</p>`
-    }
-  } else {
-    statusEl.innerHTML = '<p class="muted">Geen API-key ingesteld. Locatie toegevoegd zonder automatische afstandsberekening.</p>'
-  }
+  statusEl.innerHTML = '<p class="muted">Locatie toegevoegd! Afstanden worden automatisch berekend bij gebruik.</p>'
 
   custom.push(newLoc)
   saveCustomLocations(custom)

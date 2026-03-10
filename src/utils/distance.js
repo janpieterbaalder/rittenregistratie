@@ -136,37 +136,3 @@ export async function autoCalculateDistance(from, to) {
   pendingLookups.set(pairKey, promise)
   return promise
 }
-
-// ==========================================
-// OpenRouteService API (voor handmatig locaties toevoegen)
-// ==========================================
-const ORS_BASE = 'https://api.openrouteservice.org'
-
-export async function geocodeAddress(address) {
-  const apiKey = localStorage.getItem('rr_ors_api_key')
-  if (!apiKey) throw new Error('Geen OpenRouteService API-key ingesteld')
-
-  const res = await fetch(
-    `${ORS_BASE}/geocode/search?api_key=${apiKey}&text=${encodeURIComponent(address)}&boundary.country=NL&size=1`
-  )
-  const data = await res.json()
-  if (!data.features?.length) throw new Error('Adres niet gevonden')
-  return data.features[0].geometry.coordinates // [lon, lat]
-}
-
-export async function calculateRouteDistance(coordsFrom, coordsTo) {
-  const apiKey = localStorage.getItem('rr_ors_api_key')
-  if (!apiKey) throw new Error('Geen OpenRouteService API-key ingesteld')
-
-  const res = await fetch(`${ORS_BASE}/v2/directions/driving-car`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': apiKey,
-    },
-    body: JSON.stringify({ coordinates: [coordsFrom, coordsTo] }),
-  })
-  const data = await res.json()
-  if (!data.routes?.length) throw new Error('Route niet gevonden')
-  return Math.round(data.routes[0].summary.distance / 1000) // km
-}
