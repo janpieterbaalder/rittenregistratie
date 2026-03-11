@@ -519,6 +519,25 @@ input[type="checkbox"] {
 .data-loc-table tr:nth-child(even) { background: #f9fafb; }
 .data-loc-table tr:hover { background: var(--primary-light); }
 
+/* Delete button in locatielijst */
+.loc-delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  opacity: 0.4;
+  transition: all 0.2s;
+}
+.loc-delete-btn:hover {
+  opacity: 1;
+  color: var(--danger);
+  background: #fee2e2;
+}
+
 /* Data view: matrix tabel */
 .matrix-scroll {
   overflow: auto;

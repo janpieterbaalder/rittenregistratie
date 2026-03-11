@@ -1,5 +1,5 @@
 import { getDistance as matrixDistance } from '../data/matrix.js'
-import { getCustomDistances, saveCustomDistances, getGeoCache, saveGeoCache, getCustomLocations } from './storage.js'
+import { getCustomDistances, getGeoCache, saveGeoCache, getCustomLocations, saveCustomDistanceRemote } from './storage.js'
 import { findLocationByName } from '../data/locations.js'
 
 // Track in-flight lookups to avoid duplicate requests
@@ -24,10 +24,8 @@ export function lookupDistance(from, to) {
 }
 
 export function saveCustomDistance(from, to, km) {
-  const custom = getCustomDistances()
-  custom[`${from}|${to}`] = km
-  custom[`${to}|${from}`] = km
-  saveCustomDistances(custom)
+  // Schrijft naar Supabase (of localStorage als fallback) + update in-memory cache
+  saveCustomDistanceRemote(from, to, km)
 }
 
 export function calculateTripDistances(stops) {

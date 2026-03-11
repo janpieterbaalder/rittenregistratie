@@ -1,7 +1,7 @@
 import './style.css'
 import { LOCATIONS, findLocationByName } from './data/locations.js'
 import { lookupDistance, calculateTripDistances, autoCalculateDistance } from './utils/distance.js'
-import { getTrips, addTrip, deleteTrip, getSavedRoutes, saveSavedRoutes, getSettings, saveSettings, getCustomLocations, saveCustomLocations } from './utils/storage.js'
+import { getTrips, addTrip, deleteTrip, getSavedRoutes, saveSavedRoutes, getSettings, saveSettings, getCustomLocations, initRemoteData, addCustomLocationRemote, deleteLocationRemote, getHiddenLocationNames } from './utils/storage.js'
 import { formatDate, formatDateShort, formatMonthYear, todayISO } from './utils/formatters.js'
 
 // State
@@ -9,10 +9,12 @@ let currentStops = []
 let currentMonth = new Date().getMonth()
 let currentYear = new Date().getFullYear()
 
-// All available location names (built-in + custom)
+// All available location names (built-in + custom, minus hidden)
 function getAllLocations() {
-  const custom = getCustomLocations().map(c => ({ ...c, org: 'custom' }))
-  return [...LOCATIONS, ...custom]
+  const hidden = getHiddenLocationNames()
+  const builtIn = LOCATIONS.filter(l => !hidden.has(l.name))
+  const custom = getCustomLocations().map(c => ({ ...c, org: c.org || 'custom' }))
+  return [...builtIn, ...custom]
 }
 
 function getAllLocationNames() {
@@ -558,13 +560,14 @@ document.getElementById('add-location-btn').addEventListener('click', async () =
   // Check if name already exists
   if (getAllLocationNames().includes(name)) return alert('Deze locatienaam bestaat al')
 
-  const custom = getCustomLocations()
-  const newLoc = { id: `custom_${Date.now()}`, name, address, city: '', org }
+  const newLoc = { id: `custom_${Date.now()}`, name, address, postcode: '', city: '', org }
 
-  statusEl.innerHTML = '<p class="muted">Locatie toegevoegd! Afstanden worden automatisch berekend bij gebruik.</p>'
-
-  custom.push(newLoc)
-  saveCustomLocations(custom)
+  try {
+    await addCustomLocationRemote(newLoc)
+    statusEl.innerHTML = '<p class="muted">Locatie toegevoegd! Afstanden worden automatisch berekend bij gebruik.</p>'
+  } catch (err) {
+    statusEl.innerHTML = `<p class="muted" style="color:var(--danger)">Fout: ${err.message}</p>`
+  }
 
   document.getElementById('new-loc-name').value = ''
   document.getElementById('new-loc-address').value = ''
@@ -580,13 +583,32 @@ function renderDataView() {
 
   // === Locatielijst ===
   const locContainer = document.getElementById('data-locations-table')
-  let locHtml = '<table class="data-loc-table"><thead><tr><th>Naam</th><th>Adres</th><th>Postcode</th><th>Plaats</th><th>Org</th></tr></thead><tbody>'
+  let locHtml = '<table class="data-loc-table"><thead><tr><th>Naam</th><th>Adres</th><th>Postcode</th><th>Plaats</th><th>Org</th><th></th></tr></thead><tbody>'
   for (const loc of allLocs) {
     const orgLabel = loc.org === 'custom' ? 'Eigen' : loc.org === 'beide' ? 'B+F' : loc.org.charAt(0).toUpperCase() + loc.org.slice(1)
-    locHtml += `<tr><td><strong>${loc.name}</strong></td><td>${loc.address || ''}</td><td>${loc.postcode || ''}</td><td>${loc.city || ''}</td><td><span class="org-badge badge-${loc.org}">${orgLabel}</span></td></tr>`
+    const isBuiltIn = LOCATIONS.some(l => l.name === loc.name)
+    locHtml += `<tr><td><strong>${loc.name}</strong></td><td>${loc.address || ''}</td><td>${loc.postcode || ''}</td><td>${loc.city || ''}</td><td><span class="org-badge badge-${loc.org}">${orgLabel}</span></td><td><button class="loc-delete-btn" data-name="${loc.name}" data-builtin="${isBuiltIn}" title="Verwijder ${loc.name}">&times;</button></td></tr>`
   }
   locHtml += '</tbody></table>'
   locContainer.innerHTML = locHtml
+
+  // Delete button handlers
+  locContainer.querySelectorAll('.loc-delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const name = btn.dataset.name
+      const isBuiltIn = btn.dataset.builtin === 'true'
+      const msg = isBuiltIn
+        ? `"${name}" is een ingebouwde locatie. Wil je deze verbergen?`
+        : `Weet je zeker dat je "${name}" wilt verwijderen? Dit verwijdert ook alle bijbehorende afstanden.`
+      if (!confirm(msg)) return
+      try {
+        await deleteLocationRemote(name, isBuiltIn)
+        renderDataView()
+      } catch (err) {
+        alert(`Fout bij verwijderen: ${err.message}`)
+      }
+    })
+  })
 
   // === Matrix ===
   renderDataMatrix('')
@@ -640,4 +662,8 @@ function renderDataMatrix(filter) {
 // ==========================================
 // Init
 // ==========================================
-initStops()
+async function init() {
+  await initRemoteData()
+  initStops()
+}
+init()
