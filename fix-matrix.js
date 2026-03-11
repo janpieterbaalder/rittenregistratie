@@ -324,14 +324,7 @@ function writeMatrix(locations, progress) {
     newMatrix[`${b}|${a}`] = km
   }
 
-  // Voeg ook bestaande entries toe die niet herberekend zijn (bv. door skipped/errors)
-  for (const [key, km] of Object.entries(currentMatrix)) {
-    if (!newMatrix[key]) {
-      newMatrix[key] = km
-    }
-  }
-
-  // Sorteer keys
+  // Sorteer keys (alleen nieuwe OSRM-berekeningen, geen oude rommel)
   const sortedKeys = Object.keys(newMatrix).sort()
 
   // Schrijf matrix.js
@@ -371,13 +364,13 @@ async function main() {
   const args = process.argv.slice(2)
 
   if (args.includes('--reset')) {
-    if (existsSync(PROGRESS_FILE)) writeFileSync(PROGRESS_FILE, '{}')
+    saveJSON(PROGRESS_FILE, { distances: {}, skipped: [], errors: [] })
     console.log('Voortgang gereset.')
     return
   }
 
   if (args.includes('--reset-geo')) {
-    if (existsSync(GEO_CACHE_FILE)) writeFileSync(GEO_CACHE_FILE, '{}')
+    saveJSON(GEO_CACHE_FILE, { coords: {}, failed: [] })
     console.log('Geocache gereset.')
     return
   }
