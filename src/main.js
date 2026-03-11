@@ -175,16 +175,13 @@ async function _doResolveUnknownDistances() {
     }
 
     // Calculate all unknown distances
-    let changed = false
     for (const { from, to } of unknownPairs) {
-      const km = await autoCalculateDistance(from, to)
-      if (km !== null) changed = true
+      await autoCalculateDistance(from, to)
     }
 
-    if (changed) {
-      renderStops()
-      updateTripSummary()
-    }
+    // Always re-render to update status (success or failure)
+    renderStops()
+    updateTripSummary()
   } finally {
     resolveRunning = false
   }

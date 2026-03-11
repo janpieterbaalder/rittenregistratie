@@ -1,5 +1,5 @@
 import { getDistance as matrixDistance } from '../data/matrix.js'
-import { getCustomDistances, saveCustomDistances, getGeoCache, saveGeoCache } from './storage.js'
+import { getCustomDistances, saveCustomDistances, getGeoCache, saveGeoCache, getCustomLocations } from './storage.js'
 import { findLocationByName } from '../data/locations.js'
 
 // Track in-flight lookups to avoid duplicate requests
@@ -45,29 +45,54 @@ export function calculateTripDistances(stops) {
 // Auto-lookup: Nominatim geocoding + OSRM routing (gratis, geen key nodig)
 // ==========================================
 
+// Nominatim max 1 request/seconde
+let lastNominatimCall = 0
+
+async function nominatimSearch(query) {
+  // Rate limit: wacht minimaal 1100ms tussen requests
+  const now = Date.now()
+  const wait = Math.max(0, 1100 - (now - lastNominatimCall))
+  if (wait > 0) await new Promise(r => setTimeout(r, wait))
+  lastNominatimCall = Date.now()
+
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=nl&limit=1`
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'Rittenregistratie/1.0 (baalderborg-groep)' }
+  })
+  return res.json()
+}
+
 async function geocodeLocation(name) {
   // Check cache first
   const cache = getGeoCache()
   if (cache[name]) return cache[name]
 
-  // Get address from locations.js
-  const loc = findLocationByName(name)
+  // Find location in built-in locations OR custom locations
+  let loc = findLocationByName(name)
+  if (!loc) {
+    const custom = getCustomLocations()
+    loc = custom.find(c => c.name.toLowerCase().trim() === name.toLowerCase().trim())
+  }
   if (!loc) return null
 
-  // Try multiple query formats (Nominatim is picky about address formatting)
-  const queries = [
-    `${loc.address}, ${loc.city}, Netherlands`,
-    `${loc.address}, ${loc.postcode} ${loc.city}, Netherlands`,
-    `${loc.postcode}, ${loc.city}, Netherlands`,
-  ]
+  // Build search queries based on available address info
+  const queries = []
+  if (loc.address && loc.city) {
+    queries.push(`${loc.address}, ${loc.city}, Netherlands`)
+  }
+  if (loc.address && loc.postcode) {
+    queries.push(`${loc.address}, ${loc.postcode} ${loc.city || ''}, Netherlands`)
+  }
+  if (loc.address) {
+    queries.push(`${loc.address}, Netherlands`)
+  }
+  if (loc.postcode) {
+    queries.push(`${loc.postcode}, ${loc.city || ''}, Netherlands`)
+  }
 
   for (const query of queries) {
     try {
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&countrycodes=nl&limit=1`
-      const res = await fetch(url, {
-        headers: { 'User-Agent': 'Rittenregistratie/1.0 (baalderborg-groep)' }
-      })
-      const data = await res.json()
+      const data = await nominatimSearch(query)
       if (data.length) {
         const coords = { lon: parseFloat(data[0].lon), lat: parseFloat(data[0].lat) }
         cache[name] = coords
