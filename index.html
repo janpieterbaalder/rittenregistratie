@@ -13,6 +13,7 @@
       <button class="nav-btn" data-view="list">Overzicht</button>
       <button class="nav-btn" data-view="routes">Routes</button>
       <button class="nav-btn" data-view="settings">Instellingen</button>
+      <button class="nav-btn nav-btn-hidden" data-view="data">&nbsp;</button>
     </nav>
   </header>
 
@@ -100,6 +101,19 @@
         </div>
         <button id="add-location-btn" class="btn-secondary">Locatie toevoegen</button>
         <div id="add-location-status"></div>
+      </div>
+    </section>
+
+    <!-- DATA (verborgen tab) -->
+    <section id="view-data" class="view">
+      <div class="card">
+        <h2>Locaties</h2>
+        <div id="data-locations-table"></div>
+        <h2 style="margin-top:1.5rem">Afstandsmatrix</h2>
+        <div id="data-matrix-search" style="margin-bottom:0.75rem">
+          <input type="text" id="matrix-filter" placeholder="Filter locaties..." style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:var(--radius);font-size:0.85rem">
+        </div>
+        <div id="data-matrix-table" class="matrix-scroll"></div>
       </div>
     </section>
   </main>

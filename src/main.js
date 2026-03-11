@@ -32,7 +32,22 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     if (btn.dataset.view === 'list') renderTripList()
     if (btn.dataset.view === 'routes') renderSavedRoutes()
     if (btn.dataset.view === 'settings') loadSettings()
+    if (btn.dataset.view === 'data') renderDataView()
   })
+})
+
+// Hidden data tab: dubbelklik naast Instellingen
+document.querySelector('nav').addEventListener('dblclick', (e) => {
+  const settingsBtn = document.querySelector('[data-view="settings"]')
+  const rect = settingsBtn.getBoundingClientRect()
+  // Check if click is to the right of the settings button
+  if (e.clientX > rect.right - 10) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'))
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'))
+    document.querySelector('[data-view="data"]').classList.add('active')
+    document.getElementById('view-data').classList.add('active')
+    renderDataView()
+  }
 })
 
 // ==========================================
@@ -556,6 +571,71 @@ document.getElementById('add-location-btn').addEventListener('click', async () =
 
   setTimeout(() => { statusEl.innerHTML = '' }, 5000)
 })
+
+// ==========================================
+// Data View (verborgen tab)
+// ==========================================
+function renderDataView() {
+  const allLocs = getAllLocations()
+
+  // === Locatielijst ===
+  const locContainer = document.getElementById('data-locations-table')
+  let locHtml = '<table class="data-loc-table"><thead><tr><th>Naam</th><th>Adres</th><th>Postcode</th><th>Plaats</th><th>Org</th></tr></thead><tbody>'
+  for (const loc of allLocs) {
+    const orgLabel = loc.org === 'custom' ? 'Eigen' : loc.org === 'beide' ? 'B+F' : loc.org.charAt(0).toUpperCase() + loc.org.slice(1)
+    locHtml += `<tr><td><strong>${loc.name}</strong></td><td>${loc.address || ''}</td><td>${loc.postcode || ''}</td><td>${loc.city || ''}</td><td><span class="org-badge badge-${loc.org}">${orgLabel}</span></td></tr>`
+  }
+  locHtml += '</tbody></table>'
+  locContainer.innerHTML = locHtml
+
+  // === Matrix ===
+  renderDataMatrix('')
+  document.getElementById('matrix-filter').addEventListener('input', (e) => {
+    renderDataMatrix(e.target.value.toLowerCase())
+  })
+}
+
+function renderDataMatrix(filter) {
+  const allLocs = getAllLocations()
+  let names = allLocs.map(l => l.name)
+  if (filter) {
+    names = names.filter(n => n.toLowerCase().includes(filter))
+  }
+
+  const container = document.getElementById('data-matrix-table')
+  if (!names.length) {
+    container.innerHTML = '<p class="muted">Geen locaties gevonden.</p>'
+    return
+  }
+
+  let html = '<table class="data-matrix"><thead><tr><th class="corner">Van \\ Naar</th>'
+  for (const name of names) {
+    const short = name.length > 8 ? name.substring(0, 7) + '\u2026' : name
+    html += `<th title="${name}">${short}</th>`
+  }
+  html += '</tr></thead><tbody>'
+
+  for (let i = 0; i < names.length; i++) {
+    html += `<tr><th class="rh">${names[i]}</th>`
+    for (let j = 0; j < names.length; j++) {
+      if (i === j) {
+        html += '<td class="self">-</td>'
+      } else {
+        const d = lookupDistance(names[i], names[j])
+        if (d === null || d === undefined) {
+          html += `<td class="miss" title="${names[i]} \u2192 ${names[j]}: onbekend">?</td>`
+        } else if (d === 0) {
+          html += `<td class="zero" title="${names[i]} \u2192 ${names[j]}: 0 km">0</td>`
+        } else {
+          html += `<td class="val" title="${names[i]} \u2192 ${names[j]}: ${d} km">${d}</td>`
+        }
+      }
+    }
+    html += '</tr>'
+  }
+  html += '</tbody></table>'
+  container.innerHTML = html
+}
 
 // ==========================================
 // Init
