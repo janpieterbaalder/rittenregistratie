@@ -12,7 +12,7 @@ export const LOCATIONS = [
   { id: 'holte', name: 'Holte', address: 'Vlasakkerkamp 15', postcode: '7772 MK', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'baaldergroen', name: 'Baaldergroen', address: 'Roeterskamp 5', postcode: '7772 MC', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'pijlkruid', name: 'Pijlkruid', address: 'Pijlkruid 2', postcode: '7772 NP', city: 'Hardenberg', org: 'baalderborg' },
-  { id: 'hofvanpepijn', name: 'Hof van Pepijn', address: 'Pepijnpad 1', postcode: '7772 MR', city: 'Hardenberg', org: 'baalderborg' },
+  { id: 'hofvanpepijn', name: 'Hof van Pepijn', address: 'Nijenstede 58C', postcode: '7772 CT', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'roots', name: 'Roots', address: 'Bruchterweg 180', postcode: '7772 BL', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'koppeling', name: 'Koppeling', address: 'Molensteen 3', postcode: '7773 NM', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'grasklokje80', name: 'Grasklokje 80', address: 'Grasklokje 80', postcode: '7772 NR', city: 'Hardenberg', org: 'baalderborg' },
@@ -55,7 +55,6 @@ export const LOCATIONS = [
   { id: 'nieuwewever', name: 'Nieuwe Wever', address: 'Kalanderij 1', postcode: '7776 XW', city: 'Slagharen', org: 'baalderborg' },
   { id: 'muldershoek', name: 'Muldershoek', address: 'Stationsweg 65', postcode: '7691 AP', city: 'Bergentheim', org: 'baalderborg' },
   { id: 'stegerveld', name: 'Stegerveld', address: 'Coevorderweg 35e', postcode: '7737 PE', city: 'Stegeren', org: 'baalderborg' },
-  { id: 'lutten', name: 'Lutten', address: 'Gramsbergerweg 10', postcode: '7775 AB', city: 'Lutten', org: 'baalderborg' },
 
   // === GEDEELDE LOCATIES (Baalderborg + Frion) ===
   { id: 'ijsselbolder', name: 'Ijsselbolder', address: 'Commissarislaan 35', postcode: '8016 BE', city: 'Zwolle', org: 'beide' },
