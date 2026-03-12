@@ -88,22 +88,6 @@ export async function deleteDistancesForLocation(name) {
 }
 
 // ==========================================
-// Hidden Locations (verborgen ingebouwde locaties)
-// ==========================================
-
-export async function fetchHiddenLocations() {
-  return query('hidden_locations', 'order=hidden_at.asc')
-}
-
-export async function hideLocation(name) {
-  return upsert('hidden_locations', { name })
-}
-
-export async function unhideLocation(name) {
-  return remove('hidden_locations', `name=eq.${encodeURIComponent(name)}`)
-}
-
-// ==========================================
 // Check of Supabase geconfigureerd is
 // ==========================================
 

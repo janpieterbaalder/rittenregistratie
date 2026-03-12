@@ -1,7 +1,7 @@
 import './style.css'
 import { LOCATIONS, findLocationByName } from './data/locations.js'
 import { lookupDistance, calculateTripDistances, autoCalculateDistance } from './utils/distance.js'
-import { getTrips, addTrip, deleteTrip, getSavedRoutes, saveSavedRoutes, getSettings, saveSettings, getCustomLocations, initRemoteData, addCustomLocationRemote, deleteLocationRemote, getHiddenLocationNames } from './utils/storage.js'
+import { getTrips, addTrip, deleteTrip, getSavedRoutes, saveSavedRoutes, getSettings, saveSettings, getCustomLocations, initRemoteData, addCustomLocationRemote, deleteLocationRemote } from './utils/storage.js'
 import { formatDate, formatDateShort, formatMonthYear, todayISO } from './utils/formatters.js'
 
 // State
@@ -9,10 +9,9 @@ let currentStops = []
 let currentMonth = new Date().getMonth()
 let currentYear = new Date().getFullYear()
 
-// All available location names (built-in + custom, minus hidden)
+// All available location names (built-in + custom)
 function getAllLocations() {
-  const hidden = getHiddenLocationNames()
-  const builtIn = LOCATIONS.filter(l => !hidden.has(l.name))
+  const builtIn = LOCATIONS.map(l => ({ ...l }))
   const custom = getCustomLocations().map(c => ({ ...c, org: c.org || 'custom' }))
   return [...builtIn, ...custom]
 }
@@ -590,23 +589,20 @@ function renderDataView() {
   let locHtml = '<table class="data-loc-table"><thead><tr><th>Naam</th><th>Adres</th><th>Postcode</th><th>Plaats</th><th>Org</th><th></th></tr></thead><tbody>'
   for (const loc of allLocs) {
     const orgLabel = loc.org === 'custom' ? 'Eigen' : loc.org === 'beide' ? 'B+F' : loc.org.charAt(0).toUpperCase() + loc.org.slice(1)
-    const isBuiltIn = LOCATIONS.some(l => l.name === loc.name)
-    locHtml += `<tr><td><strong>${loc.name}</strong></td><td>${loc.address || ''}</td><td>${loc.postcode || ''}</td><td>${loc.city || ''}</td><td><span class="org-badge badge-${loc.org}">${orgLabel}</span></td><td><button class="loc-delete-btn" data-name="${loc.name}" data-builtin="${isBuiltIn}" title="Verwijder ${loc.name}">&times;</button></td></tr>`
+    const isCustom = !LOCATIONS.some(l => l.name === loc.name)
+    const deleteBtn = isCustom ? `<button class="loc-delete-btn" data-name="${loc.name}" title="Verwijder ${loc.name}">&times;</button>` : ''
+    locHtml += `<tr><td><strong>${loc.name}</strong></td><td>${loc.address || ''}</td><td>${loc.postcode || ''}</td><td>${loc.city || ''}</td><td><span class="org-badge badge-${loc.org}">${orgLabel}</span></td><td>${deleteBtn}</td></tr>`
   }
   locHtml += '</tbody></table>'
   locContainer.innerHTML = locHtml
 
-  // Delete button handlers
+  // Delete button handlers (alleen custom locaties)
   locContainer.querySelectorAll('.loc-delete-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const name = btn.dataset.name
-      const isBuiltIn = btn.dataset.builtin === 'true'
-      const msg = isBuiltIn
-        ? `"${name}" is een ingebouwde locatie. Wil je deze verbergen?`
-        : `Weet je zeker dat je "${name}" wilt verwijderen? Dit verwijdert ook alle bijbehorende afstanden.`
-      if (!confirm(msg)) return
+      if (!confirm(`Weet je zeker dat je "${name}" wilt verwijderen? Dit verwijdert ook alle bijbehorende afstanden uit Supabase.`)) return
       try {
-        await deleteLocationRemote(name, isBuiltIn)
+        await deleteLocationRemote(name)
         renderDataView()
       } catch (err) {
         alert(`Fout bij verwijderen: ${err.message}`)

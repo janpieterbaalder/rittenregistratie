@@ -1,7 +1,6 @@
 import {
   fetchCustomLocations, insertCustomLocation, deleteCustomLocationByName,
   fetchCustomDistances, upsertCustomDistance, deleteDistancesForLocation,
-  fetchHiddenLocations, hideLocation, unhideLocation,
   isConfigured
 } from './supabase.js'
 
@@ -63,12 +62,10 @@ export function saveGeoCache(cache) { save(KEYS.GEO_CACHE, cache) }
 
 let _customLocations = []
 let _customDistances = {}
-let _hiddenLocations = new Set()
 let _remoteReady = false
 
 export function getCustomLocations() { return _customLocations }
 export function getCustomDistances() { return _customDistances }
-export function getHiddenLocationNames() { return _hiddenLocations }
 export function isRemoteReady() { return _remoteReady }
 
 // ==========================================
@@ -80,7 +77,6 @@ export async function initRemoteData() {
     // Supabase niet geconfigureerd: val terug op localStorage
     _customLocations = load(KEYS.CUSTOM_LOCATIONS, [])
     _customDistances = load(KEYS.CUSTOM_DISTANCES, {})
-    _hiddenLocations = new Set()
     _remoteReady = false
     console.warn('Supabase niet geconfigureerd – localStorage modus')
     return
@@ -91,10 +87,9 @@ export async function initRemoteData() {
     await _migrateLocalStorage()
 
     // Haal alle remote data op
-    const [locs, dists, hidden] = await Promise.all([
+    const [locs, dists] = await Promise.all([
       fetchCustomLocations(),
       fetchCustomDistances(),
-      fetchHiddenLocations(),
     ])
 
     _customLocations = locs.map(l => ({
@@ -111,14 +106,12 @@ export async function initRemoteData() {
       _customDistances[`${d.from_name}|${d.to_name}`] = d.km
     }
 
-    _hiddenLocations = new Set(hidden.map(h => h.name))
     _remoteReady = true
   } catch (err) {
     console.error('Fout bij laden remote data:', err)
     // Fallback naar localStorage
     _customLocations = load(KEYS.CUSTOM_LOCATIONS, [])
     _customDistances = load(KEYS.CUSTOM_DISTANCES, {})
-    _hiddenLocations = new Set()
     _remoteReady = false
   }
 }
@@ -181,27 +174,17 @@ export async function addCustomLocationRemote(loc) {
   _customLocations.push(loc)
 }
 
-export async function deleteLocationRemote(name, isBuiltIn) {
-  if (isBuiltIn) {
-    // Ingebouwde locatie: markeer als verborgen
-    if (_remoteReady) {
-      await hideLocation(name)
-    }
-    _hiddenLocations.add(name)
-  } else {
-    // Custom locatie: verwijder uit Supabase
-    if (_remoteReady) {
-      await deleteCustomLocationByName(name)
-    } else {
-      const local = load(KEYS.CUSTOM_LOCATIONS, [])
-      save(KEYS.CUSTOM_LOCATIONS, local.filter(l => l.name !== name))
-    }
-    _customLocations = _customLocations.filter(l => l.name !== name)
-  }
-  // Verwijder gerelateerde afstanden
+export async function deleteLocationRemote(name) {
+  // Verwijder custom locatie uit Supabase
   if (_remoteReady) {
+    await deleteCustomLocationByName(name)
+    // Verwijder ook alle bijbehorende custom afstanden
     await deleteDistancesForLocation(name)
+  } else {
+    const local = load(KEYS.CUSTOM_LOCATIONS, [])
+    save(KEYS.CUSTOM_LOCATIONS, local.filter(l => l.name !== name))
   }
+  _customLocations = _customLocations.filter(l => l.name !== name)
   // Update lokale distance cache
   const keysToRemove = Object.keys(_customDistances).filter(k => k.includes(name))
   for (const k of keysToRemove) delete _customDistances[k]
