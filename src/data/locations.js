@@ -49,7 +49,7 @@ export const LOCATIONS = [
   // Hardenberg cluster
   { id: 'hoogenweg', name: 'Hoogenweg', address: 'Hoogenweg 5', postcode: '7793 HN', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'vlasakkerkamp', name: 'Vlasakkerkamp', address: 'Vlasakkerkamp 2', postcode: '7772 MK', city: 'Hardenberg', org: 'baalderborg' },
-  { id: 'spindel', name: 'AC De Spindel', address: 'Vlasakkerkamp 13', postcode: '7772 MK', city: 'Hardenberg', org: 'baalderborg' },
+  { id: 'spindel', name: 'Spindel', address: 'Vlasakkerkamp 13', postcode: '7772 MK', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'oldenburg', name: 'De Oldenburg', address: 'Stationsstraat 5', postcode: '7772 CG', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'niehof', name: 'De Niehof', address: 'Singelberg 7a', postcode: '7772 DA', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'holte', name: 'Holte', address: 'Roeterskamp 6', postcode: '7772 MB', city: 'Hardenberg', org: 'baalderborg' },
@@ -63,7 +63,7 @@ export const LOCATIONS = [
   { id: 'blanckvoortallee', name: 'Blanckvoortallee', address: 'Blanckvoortallee 8', postcode: '7773 AH', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'wijkboerderijbaalder', name: 'Wijkboerderij Baalder', address: 'Beekberg 45', postcode: '7772 DP', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'gilde', name: 'Gilde', address: 'Oosteinde 34a', postcode: '7772 CB', city: 'Hardenberg', org: 'baalderborg' },
-  { id: 'artcrew', name: 'ArtCrew', address: 'Vlasakkerkamp 19', postcode: '7772 MK', city: 'Hardenberg', org: 'baalderborg' },
+  { id: 'keet', name: 'Keet', address: 'Vlasakkerkamp 19', postcode: '7772 MK', city: 'Hardenberg', org: 'baalderborg' },
   { id: 'wanne', name: 'Wanne', address: 'Vlasakkerkamp 6', postcode: '7772 MK', city: 'Hardenberg', org: 'baalderborg' },
   // Ommen cluster
   { id: 'vlinder', name: 'Vlinder', address: 'Van Reeuwijkstraat 50', postcode: '7731 EH', city: 'Ommen', org: 'baalderborg' },

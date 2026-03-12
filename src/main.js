@@ -552,15 +552,17 @@ document.getElementById('save-settings-btn').addEventListener('click', () => {
 document.getElementById('add-location-btn').addEventListener('click', async () => {
   const name = document.getElementById('new-loc-name').value.trim()
   const address = document.getElementById('new-loc-address').value.trim()
+  const postcode = document.getElementById('new-loc-postcode').value.trim()
+  const city = document.getElementById('new-loc-city').value.trim()
   const org = document.getElementById('new-loc-org').value
   const statusEl = document.getElementById('add-location-status')
 
-  if (!name || !address) return alert('Vul naam en adres in')
+  if (!name || !address || !city) return alert('Vul naam, straat en plaats in')
 
   // Check if name already exists
   if (getAllLocationNames().includes(name)) return alert('Deze locatienaam bestaat al')
 
-  const newLoc = { id: `custom_${Date.now()}`, name, address, postcode: '', city: '', org }
+  const newLoc = { id: `custom_${Date.now()}`, name, address, postcode, city, org }
 
   try {
     await addCustomLocationRemote(newLoc)
@@ -571,6 +573,8 @@ document.getElementById('add-location-btn').addEventListener('click', async () =
 
   document.getElementById('new-loc-name').value = ''
   document.getElementById('new-loc-address').value = ''
+  document.getElementById('new-loc-postcode').value = ''
+  document.getElementById('new-loc-city').value = ''
 
   setTimeout(() => { statusEl.innerHTML = '' }, 5000)
 })
