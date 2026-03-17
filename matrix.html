@@ -10,30 +10,28 @@
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0c0c10; color: #e4e4e7; }
 
     header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #13131a 100%);
+      background: #13131a;
       color: white; padding: 16px 24px;
       display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid #27272a;
     }
     header h1 { font-size: 1.2rem; }
-    header a { color: #22c55e; text-decoration: none; opacity: 0.8; font-size: 0.9rem; }
+    header a { color: #4ade80; text-decoration: none; opacity: 0.8; font-size: 0.9rem; }
     header a:hover { opacity: 1; }
 
     .controls {
       padding: 16px 24px; background: #18181b; border-bottom: 1px solid #27272a;
       display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
     }
-    .controls label { font-weight: 600; font-size: 0.85rem; color: #a1a1aa; }
+    .controls label { font-weight: 600; font-size: 0.85rem; color: #52525b; }
     .controls input, .controls select {
       padding: 6px 10px; border: 1px solid #27272a; border-radius: 6px; font-size: 0.85rem;
       background: #09090b; color: #e4e4e7;
     }
-    .controls input:focus, .controls select:focus {
-      outline: none; border-color: #22c55e;
-    }
+    .controls input:focus, .controls select:focus { outline: none; border-color: #4ade80; }
     .controls input[type="text"] { width: 200px; }
-    .stats { padding: 12px 24px; background: rgba(34, 197, 94, 0.08); border-bottom: 1px solid #27272a; font-size: 0.85rem; display: flex; gap: 24px; flex-wrap: wrap; color: #a1a1aa; }
-    .stats span { font-weight: 600; color: #22c55e; }
+    .stats { padding: 12px 24px; background: rgba(74, 222, 128, 0.05); border-bottom: 1px solid #27272a; font-size: 0.85rem; display: flex; gap: 24px; flex-wrap: wrap; color: #52525b; }
+    .stats span { font-weight: 600; color: #4ade80; }
 
     .table-wrapper {
       overflow: auto; padding: 12px; max-height: calc(100vh - 200px);
@@ -45,24 +43,24 @@
       border: 1px solid #27272a; padding: 3px 5px; text-align: center; min-width: 32px;
     }
     th {
-      background: #1a1a2e; color: #22c55e; position: sticky; top: 0; z-index: 2;
+      background: #13131a; color: #e4e4e7; position: sticky; top: 0; z-index: 2;
       font-weight: 600; font-size: 0.65rem;
     }
     th.row-header {
-      background: #1a1a2e; color: #e4e4e7; position: sticky; left: 0; z-index: 3;
+      background: #13131a; color: #e4e4e7; position: sticky; left: 0; z-index: 3;
       text-align: left; min-width: 120px; font-size: 0.7rem;
     }
     th.corner {
-      position: sticky; top: 0; left: 0; z-index: 4; background: #13131a;
+      position: sticky; top: 0; left: 0; z-index: 4; background: #0c0c10;
     }
-    td.self { background: #1c1c22; color: #52525b; }
-    td.zero { background: rgba(245, 158, 11, 0.1); color: #fbbf24; font-weight: 600; }
-    td.missing { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+    td.self { background: #1c1c22; color: #3f3f46; }
+    td.zero { background: rgba(74, 222, 128, 0.05); color: #52525b; font-weight: 600; }
+    td.missing { background: rgba(255, 255, 255, 0.02); color: #3f3f46; }
     td.has-value { background: #18181b; color: #e4e4e7; }
-    td.highlight { background: rgba(34, 197, 94, 0.08) !important; }
+    td.highlight { background: rgba(74, 222, 128, 0.08) !important; }
 
     .legend {
-      padding: 8px 24px; display: flex; gap: 16px; font-size: 0.8rem; flex-wrap: wrap; color: #a1a1aa;
+      padding: 8px 24px; display: flex; gap: 16px; font-size: 0.8rem; flex-wrap: wrap; color: #52525b;
     }
     .legend-item { display: flex; align-items: center; gap: 4px; }
     .legend-color {
@@ -97,8 +95,8 @@
 
   <div class="legend">
     <div class="legend-item"><div class="legend-color" style="background:#18181b"></div> Afstand bekend</div>
-    <div class="legend-item"><div class="legend-color" style="background:rgba(245,158,11,0.1)"></div> 0 km (zelfde adres)</div>
-    <div class="legend-item"><div class="legend-color" style="background:rgba(239,68,68,0.1)"></div> Ontbrekend</div>
+    <div class="legend-item"><div class="legend-color" style="background:rgba(74,222,128,0.05)"></div> 0 km (zelfde adres)</div>
+    <div class="legend-item"><div class="legend-color" style="background:rgba(255,255,255,0.02)"></div> Ontbrekend</div>
     <div class="legend-item"><div class="legend-color" style="background:#1c1c22"></div> Zelfde locatie</div>
   </div>
 
@@ -109,7 +107,6 @@
 
     const allNames = getAllLocationNames()
 
-    // Cluster definitions for filtering
     const clusters = {
       hardenberg: ['Keet','Hoogenweg','Vlasakkerkamp','Spindel','Oldenburg','Niehof','Holte',
         'Baaldergroen','Pijlkruid','Roots','Koppeling','Grasklokje 80','Grasklokje 45',
@@ -127,7 +124,6 @@
     function getFilteredNames() {
       const filter = document.getElementById('filter').value
       const search = document.getElementById('search').value.toLowerCase()
-
       let names = allNames
       if (filter !== 'all' && clusters[filter]) {
         names = names.filter(n => clusters[filter].includes(n))
@@ -143,11 +139,10 @@
       const wrapper = document.getElementById('table-wrapper')
 
       if (names.length === 0) {
-        wrapper.innerHTML = '<p style="padding:24px;color:#71717a;">Geen locaties gevonden.</p>'
+        wrapper.innerHTML = '<p style="padding:24px;color:#52525b;">Geen locaties gevonden.</p>'
         return
       }
 
-      // Stats
       let known = 0, missing = 0, zeros = 0
       for (let i = 0; i < names.length; i++) {
         for (let j = 0; j < names.length; j++) {
@@ -167,10 +162,8 @@
         <div><span>${total > 0 ? (((known + zeros) / total) * 100).toFixed(1) : 0}%</span> volledig</div>
       `
 
-      // Build table
       let html = '<table><thead><tr><th class="corner">Van \\ Naar</th>'
       for (const name of names) {
-        // Abbreviate long names for column headers
         const short = name.length > 10 ? name.substring(0, 9) + '…' : name
         html += `<th title="${name}">${short}</th>`
       }
@@ -197,7 +190,6 @@
       html += '</tbody></table>'
       wrapper.innerHTML = html
 
-      // Hover highlight
       const rows = wrapper.querySelectorAll('tbody tr')
       rows.forEach(row => {
         row.addEventListener('mouseenter', () => {
