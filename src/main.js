@@ -280,32 +280,45 @@ function onLocationInput(e) {
 function onLocationKeydown(e) {
   const wrapper = e.target.closest('.location-input-wrapper')
   const dropdown = wrapper.querySelector('.autocomplete-list')
-  if (!dropdown) return
+  const items = dropdown ? dropdown.querySelectorAll('.autocomplete-item') : []
 
-  const items = dropdown.querySelectorAll('.autocomplete-item')
-  if (e.key === 'ArrowDown') {
+  if (e.key === 'ArrowDown' && items.length) {
     e.preventDefault()
     highlightedIdx = Math.min(highlightedIdx + 1, items.length - 1)
     items.forEach((it, i) => it.classList.toggle('highlighted', i === highlightedIdx))
-  } else if (e.key === 'ArrowUp') {
+  } else if (e.key === 'ArrowUp' && items.length) {
     e.preventDefault()
     highlightedIdx = Math.max(highlightedIdx - 1, 0)
     items.forEach((it, i) => it.classList.toggle('highlighted', i === highlightedIdx))
   } else if (e.key === 'Enter') {
+    if (!items.length) return
     e.preventDefault()
     if (highlightedIdx >= 0 && items[highlightedIdx]) {
       items[highlightedIdx].dispatchEvent(new Event('mousedown'))
+    } else if (items.length === 1) {
+      items[0].dispatchEvent(new Event('mousedown'))
     }
   } else if (e.key === 'Escape') {
     closeAllDropdowns()
-  } else if (e.key === 'Tab') {
+  } else if (e.key === 'Tab' && !e.shiftKey) {
     const idx = parseInt(e.target.dataset.idx)
-    // Only add new stop on Tab from the last (or second-to-last if auto-home) input
     const settings = getSettings()
     const isLastEditable = settings.autoAddHome
       ? idx === currentStops.length - 2
       : idx === currentStops.length - 1
-    if (isLastEditable && !e.shiftKey) {
+
+    // Select highlighted item, or auto-select if only 1 option
+    const itemToSelect = (highlightedIdx >= 0 && items[highlightedIdx])
+      ? items[highlightedIdx]
+      : (items.length === 1 ? items[0] : null)
+
+    if (itemToSelect) {
+      e.preventDefault()
+      itemToSelect.dispatchEvent(new Event('mousedown'))
+      if (isLastEditable) {
+        setTimeout(() => document.getElementById('add-stop-btn').click(), 50)
+      }
+    } else if (isLastEditable) {
       e.preventDefault()
       closeAllDropdowns()
       document.getElementById('add-stop-btn').click()
