@@ -249,6 +249,32 @@ input:focus, select:focus {
   text-align: right;
 }
 
+.stop-move-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+}
+.move-stop-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.55rem;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s, border-color 0.15s;
+}
+.move-stop-btn:hover:not(:disabled) {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+.move-stop-btn:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
 .stop-row .remove-stop {
   background: none;
   border: none;

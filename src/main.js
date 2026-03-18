@@ -90,8 +90,15 @@ function renderStops() {
 
     const row = document.createElement('div')
     row.className = 'stop-row'
+    const moveButtons = currentStops.length > 2 ? `
+      <div class="stop-move-buttons">
+        <button class="move-stop-btn" data-idx="${idx}" data-dir="up" ${idx === 0 ? 'disabled' : ''} title="Omhoog">&#9650;</button>
+        <button class="move-stop-btn" data-idx="${idx}" data-dir="down" ${idx === currentStops.length - 1 ? 'disabled' : ''} title="Omlaag">&#9660;</button>
+      </div>
+    ` : ''
     row.innerHTML = `
       <span class="stop-number">${idx + 1}</span>
+      ${moveButtons}
       <div class="location-input-wrapper">
         <input type="text" class="location-input" value="${stop}" placeholder="Zoek locatie..." data-idx="${idx}" autocomplete="off">
       </div>
@@ -106,6 +113,20 @@ function renderStops() {
     input.addEventListener('focus', (e) => onLocationInput(e))
     input.addEventListener('blur', () => setTimeout(closeAllDropdowns, 200))
     input.addEventListener('keydown', (e) => onLocationKeydown(e))
+  })
+
+  stopsContainer.querySelectorAll('.move-stop-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx)
+      const dir = btn.dataset.dir
+      if (dir === 'up' && idx > 0) {
+        [currentStops[idx], currentStops[idx - 1]] = [currentStops[idx - 1], currentStops[idx]]
+      } else if (dir === 'down' && idx < currentStops.length - 1) {
+        [currentStops[idx], currentStops[idx + 1]] = [currentStops[idx + 1], currentStops[idx]]
+      }
+      renderStops()
+      resolveUnknownDistances()
+    })
   })
 
   stopsContainer.querySelectorAll('.remove-stop').forEach(btn => {
@@ -277,6 +298,18 @@ function onLocationKeydown(e) {
     }
   } else if (e.key === 'Escape') {
     closeAllDropdowns()
+  } else if (e.key === 'Tab') {
+    const idx = parseInt(e.target.dataset.idx)
+    // Only add new stop on Tab from the last (or second-to-last if auto-home) input
+    const settings = getSettings()
+    const isLastEditable = settings.autoAddHome
+      ? idx === currentStops.length - 2
+      : idx === currentStops.length - 1
+    if (isLastEditable && !e.shiftKey) {
+      e.preventDefault()
+      closeAllDropdowns()
+      document.getElementById('add-stop-btn').click()
+    }
   }
 }
 
